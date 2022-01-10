@@ -1,4 +1,7 @@
 <?php
+$vendorDir = dirname(dirname(dirname(__DIR__)));
+require($vendorDir.'/autoload.php');
+
 use Kpf\Application;
 use Kpf\Installer;
 
