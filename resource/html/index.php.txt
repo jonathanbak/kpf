@@ -1,0 +1,31 @@
+<?php
+
+use Kpf\Application;
+
+/**
+ * composer.phar 이 설치되는 vendor 폴더가 위치해 있는 디렉토리를 base directory 로 설정합니다.
+ */
+$baseDir = dirname(dirname(__FILE__));
+$composerAutoloader = require_once($baseDir . '/vendor/autoload.php');
+// for Amazone
+if(isset($_SERVER['HTTP_X_FORWARDED_FOR'])){
+    $_SERVER['REMOTE_ADDR'] = $_SERVER['HTTP_X_FORWARDED_FOR'];
+}
+
+try {
+
+    Application::init($baseDir);
+    Application::start();
+
+} catch (Exception $e) {
+    if (Application::getConfig()->common('development')) {
+        Kpf\Debug::write($e->getMessage());
+    } else {
+        switch ($e->getCode()) {
+            case 404:
+//                header("Location: /error/page/not");
+                header('HTTP/1.0 404 Not Found', true, 404);
+                break;
+        }
+    }
+}
