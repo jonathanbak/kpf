@@ -1,0 +1,15 @@
+<?php
+namespace <<namespace>>\Controller\Main;
+
+use <<namespace>>\Model\Account\Member;
+use Kpf\Controller;
+
+class Main extends Controller
+{
+    public function main()
+    {
+        $Member = new Member();
+        $data = $Member->getInfo();
+        $this->display("main/main", $data);
+    }
+}

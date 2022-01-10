@@ -1,0 +1,29 @@
+{
+  "name": "jonathanbak/kpf",
+  "description": "kubernetes php framework",
+  "type": "project",
+  "license": "GPL3.0",
+  "authors": [
+    {
+      "name": "Jonathan Bak",
+      "email": "jonathanbak@gmail.com"
+    }
+  ],
+  "require": {
+    "jonathanbak/mysqlilib": "~1.3",
+    "twig/twig":"^3.0"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^9"
+  },
+  "autoload": {
+    "psr-4": {
+      "Kpf\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Kpf\\Tests\\": "tests/"
+    }
+  }
+}

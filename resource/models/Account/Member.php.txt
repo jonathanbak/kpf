@@ -1,0 +1,16 @@
+<?php
+namespace <<namespace>>\Model\Account;
+
+use Kpf\Model;
+
+class Member extends Model
+{
+
+    /**
+     * @return string[]
+     */
+    public function getInfo()
+    {
+        return ['name'=>'Jonathan Bak 2', 'id'=>'jonathanbak@gmail.com','memo'=>'test member'];
+    }
+}
