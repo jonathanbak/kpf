@@ -75,7 +75,7 @@ class Installer
         return array(
             "driver" => "mysqli",
             "host" => "localhost",
-            "username" => "user",
+            "user" => "user",
             "password" => "password",
             "database" => "dbname",
             "port" => "3306",

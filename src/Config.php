@@ -167,4 +167,14 @@ class Config
             return self::$configItem[$configFileName];
         }
     }
+
+    public static function config(string $configFileName)
+    {
+        return Application::getConfig()->load($configFileName);
+    }
+
+    public static function global(string $key)
+    {
+        return Application::getConfig()->common($key);
+    }
 }
