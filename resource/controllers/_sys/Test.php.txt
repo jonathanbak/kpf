@@ -1,0 +1,12 @@
+<?php
+namespace <<namespace>>\Controller\_sys;
+
+use Kpf\System;
+
+class Test extends System
+{
+    public function main()
+    {
+        var_dump($_GET);
+    }
+}

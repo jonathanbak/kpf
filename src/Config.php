@@ -115,8 +115,18 @@ class Config
                 $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
             }
             array_shift($_SERVER['argv']);
-            array_shift($_SERVER['argv']);
             $_SERVER['argc']--;
+
+            if($_SERVER['argc'] > 0) {
+                $_SERVER['REQUEST_URI'] = $_SERVER['argv'][0];
+                $urlInfo = parse_url($_SERVER['REQUEST_URI']);
+                if(!empty($urlInfo['host'])) $_SERVER['HTTP_HOST'] = $urlInfo['host'];
+                if(!empty($urlInfo['path'])) $_SERVER['REQUEST_URI'] = $urlInfo['path'];
+                if(!empty($urlInfo['query'])) {
+                    $_SERVER['QUERY_STRING'] = $urlInfo['query'];
+                    parse_str($urlInfo['query'], $_GET);
+                }
+            }
 //            $_SERVER['HTTP_HOST'] = $_SERVER['SERVER_NAME'] . ($_SERVER['SERVER_PORT'] != '80' ? ':' . $_SERVER['SERVER_PORT'] : '');
             $_SERVER['REQUEST_METHOD'] = 'GET';
         }

@@ -25,6 +25,16 @@ Start First Project
 $ php ./vendor/jonathanbak/kpf/bin/install.php <namespace>
 OK.
 ```
+Test Cli
+-------------
+쉘용 스크립트 컨트롤러 파일 실행이 가능합니다.
+```shell
+$ php ./html/index.php /_sys/Test/main?type=test
+array(1) {
+  ["type"]=>
+  string(4) "test"
+}
+```
 
 Folder Structure
 -------------------

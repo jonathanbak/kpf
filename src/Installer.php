@@ -90,6 +90,12 @@ class Installer
         $content = str_replace('<<namespace>>',ucfirst(Application::getNamespace()),$content);
         $targetFile = Application::getDirectory()->get(Constant::DIR_CONTROLLER)."Main/Main.php";
         File::write($targetFile, $content);
+
+        $resourceFile = dirname(__DIR__) . "/resource/controllers/_sys/Test.php.txt";
+        $content = File::load($resourceFile);
+        $content = str_replace('<<namespace>>',ucfirst(Application::getNamespace()),$content);
+        $targetFile = Application::getDirectory()->get(Constant::DIR_CONTROLLER)."_sys/Test.php";
+        File::write($targetFile, $content);
     }
 
     protected function createSampleModel()
