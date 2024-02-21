@@ -16,6 +16,10 @@ class Debug extends Singleton
         if (is_dir($logDir) == false) {
             mkdir($logDir, 0777);
         }
+        if(!file_exists($this->logFileName)){
+            touch($this->logFileName);
+            chmod($this->logFileName, 0777);
+        }
     }
 
     /**
@@ -61,14 +65,5 @@ class Debug extends Singleton
     {
         $messages = "[" . date("Y-m-d H:i:s") . "] (" . $logGroup . ") " . $_SERVER['REMOTE_ADDR'] . " - " . $messages . "\n";
         file_put_contents($this->logFileName, $messages, FILE_APPEND);
-        chmod($this->logFileName, 0777);
-    }
-
-    protected function unicode_decode($str)
-    {
-        $str = preg_replace_callback('/\\\\u([0-9a-fA-F]{4})/', create_function('$match',
-            'return mb_convert_encoding(pack("H*", $match[1]), "UTF-8", "UCS-2BE");'
-        ), $str);
-        return $str;
     }
 }
