@@ -2,6 +2,23 @@
 
 모든 마이너 릴리즈는 프레임워크 핵심의 안정성과 기능 개선을 목표로 합니다.
 
+## [1.2.0](https://github.com/jonathanbak/kpf/compare/v1.1.0...v1.2.0) (2025-05-26)
+
+
+### Features
+
+* 지원 템플릿 폴더를 사용자 정의 가능하도록 make init 명령 추가 ([1698881](https://github.com/jonathanbak/kpf/commit/169888113109fed5e75ddc8810b50808c0f5d48c))
+
+
+### Bug Fixes
+
+* correct GitHub Actions branch reference (master → main) ([0ef2439](https://github.com/jonathanbak/kpf/commit/0ef2439a40921d49878835facc3fff6f4e2c7ff3))
+
+
+### Miscellaneous Chores
+
+* raise minimum PHP version to 7.2.5 ([e91cfc0](https://github.com/jonathanbak/kpf/commit/e91cfc0bcab7d7b54319f9262246b1229c7d8a6d))
+
 ## [v1.1.0] - 2022-12-09
 ### ✅ 주요 개선
 - `Router` 클래스 `Application` 의존성 제거 및 DI 지원
