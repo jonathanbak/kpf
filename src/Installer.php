@@ -2,36 +2,55 @@
 
 namespace Kpf;
 
-use Kpf\Exception\Exception;
-use Kpf\Helper\ArrayMerge;
 use Kpf\Helper\File;
+use Kpf\Helper\ArrayMerge;
 
 class Installer
 {
+    protected $rootDir;
+    protected $namespace;
+    protected $config;
+    protected $directory;
+
     /**
-     * @param $namespace
-     * @throws Exception
-     * @throws Exception\ConfigException
-     * @throws Exception\DirectoryException
+     * 1단계: 설치 초기 셋업 (configure.json 생성)
      */
-    public function install($namespace)
+    public function setup(string $rootDir, string $namespace): void
     {
-        Application::setNamespace($namespace);
-        if (!Application::getConfig()->common('installed')) {
-            $dirs = Application::getConfig()->common("dirs");
-            foreach($dirs as $dir){
-                $chmod = 0755;
-                if($dir==Constant::DIR_TEMP || $dir==Constant::DIR_LOG || $dir==Constant::DIR_COMPILE) $chmod = 0777;
-                $this->makeDir( Application::getDirectory()->get($dir), $chmod );
+        $this->rootDir = rtrim($rootDir, '/');
+        $this->namespace = ucfirst($namespace);
+
+        File::makeDir($this->rootDir);
+
+        $defaultConfigure = Config::getDefaultConfigure(["namespace" => $this->namespace]);
+
+        File::put_json_pretty($this->rootDir . '/' . Constant::COMMON_CONFIG_FILE, $defaultConfigure);
+    }
+
+    /**
+     * 2단계: 실제 설치
+     */
+    public function install()
+    {
+        $this->directory = new Directory();
+        $this->directory->setRoot($this->rootDir);
+
+        $this->config = new Config();
+        $this->config->init();
+
+        if (!$this->config->common('installed')) {
+            $dirs = $this->config->common('dirs');
+
+            foreach ($dirs as $dir) {
+                $chmod = in_array($dir, [Constant::DIR_TEMP, Constant::DIR_LOG, Constant::DIR_COMPILE]) ? 0777 : 0755;
+                File::makeDir($this->directory->get($dir), $chmod);
             }
 
             $this->createDbConfigure();
-
             $this->createRouteConfigure();
 
-            $newConfigure = ArrayMerge::recursive_distinct(Application::getConfig()->common(), array('installed' => '1'));
-            $configFileName = Application::getConfig()->getCommonConfigFile();
-            File::put_json_pretty($configFileName, $newConfigure);
+            $newConfigure = ArrayMerge::recursive_distinct($this->config->common(), ['installed' => '1']);
+            File::put_json_pretty($this->config->getCommonConfigFile(), $newConfigure);
 
             $this->createSampleController();
             $this->createSampleModel();
@@ -47,32 +66,27 @@ class Installer
     protected function createDbConfigure()
     {
         $dbConfigure = $this->baseDbConfigure();
-        $configFileName = Application::getDirectory()->get(Constant::DIR_CONFIG) . Application::getConfig()->common(Constant::KEY_DB_SET)  . Constant::DOT . Constant::CONFIG_EXTENSION;
-        File::put_json_pretty($configFileName, $dbConfigure);
+        $fileName = $this->directory->get(Constant::DIR_CONFIG) . $this->config->getDbConfigFilename();
+        File::put_json_pretty($fileName, $dbConfigure);
     }
 
-    public function makeDir(string $dir, $chmod = 0755): bool
+    protected function createRouteConfigure()
     {
-        if (!is_dir($dir)) return mkdir($dir, $chmod, true);
-        return true;
-    }
-
-    protected function createRouteConfigure(){
-        $baseRoute = array(
+        $baseRoute = [
             "default" => "/",
-            "routing" => array(
+            "routing" => [
                 "/" => "main/main",
                 "/test/detail/([A-Za-z0-9]+)" => "test/detail/item"
-            )
-        );
+            ]
+        ];
 
-        $configFileName = Application::getDirectory()->get(Constant::DIR_CONFIG) . Application::getConfig()->common(Constant::KEY_ROUTE)  . Constant::DOT . Constant::CONFIG_EXTENSION;
-        File::put_json_pretty($configFileName, $baseRoute);
+        $fileName = $this->directory->get(Constant::DIR_CONFIG) . $this->config->getRouteConfigFilename();
+        File::put_json_pretty($fileName, $baseRoute);
     }
 
     protected function baseDbConfigure(): array
     {
-        return array(
+        return [
             "driver" => "mysqli",
             "host" => "localhost",
             "user" => "user",
@@ -80,53 +94,53 @@ class Installer
             "database" => "dbname",
             "port" => "3306",
             "charset" => "utf8"
-        );
+        ];
     }
 
     protected function createSampleController()
     {
-        $resourceFile = dirname(__DIR__) . "/resource/controllers/Main/Main.php.txt";
-        $content = File::load($resourceFile);
-        $content = str_replace('<<namespace>>',ucfirst(Application::getNamespace()),$content);
-        $targetFile = Application::getDirectory()->get(Constant::DIR_CONTROLLER)."Main/Main.php";
-        File::write($targetFile, $content);
-
-        $resourceFile = dirname(__DIR__) . "/resource/controllers/_sys/Test.php.txt";
-        $content = File::load($resourceFile);
-        $content = str_replace('<<namespace>>',ucfirst(Application::getNamespace()),$content);
-        $targetFile = Application::getDirectory()->get(Constant::DIR_CONTROLLER)."_sys/Test.php";
-        File::write($targetFile, $content);
+        $namespace = ucfirst($this->config->common('namespace'));
+        foreach ([
+                     'Main/Main.php.txt' => 'Main/Main.php',
+                     '_sys/Test.php.txt' => '_sys/Test.php'
+                 ] as $template => $target) {
+            $templatePath = dirname(__DIR__) . "/resource/controllers/" . $template;
+            $targetPath = $this->directory->get(Constant::DIR_CONTROLLER) . $target;
+            $content = str_replace('<<namespace>>', $namespace, File::load($templatePath));
+            File::write($targetPath, $content);
+        }
     }
 
     protected function createSampleModel()
     {
-        $resourceFile = dirname(__DIR__) . "/resource/models/Account/Member.php.txt";
-        $content = File::load($resourceFile);
-        $content = str_replace('<<namespace>>',ucfirst(Application::getNamespace()),$content);
-        $targetFile = Application::getDirectory()->get(Constant::DIR_MODEL)."Account/Member.php";
-        File::write($targetFile, $content);
+        $namespace = ucfirst($this->config->common('namespace'));
+        $template = dirname(__DIR__) . "/resource/models/Account/Member.php.txt";
+        $target = $this->directory->get(Constant::DIR_MODEL) . "Account/Member.php";
+        $content = str_replace('<<namespace>>', $namespace, File::load($template));
+        File::write($target, $content);
     }
 
     protected function createSampleTemplate()
     {
-        $resourceFile = dirname(__DIR__) . "/resource/views/base.twig.txt";
-        $content = File::load($resourceFile);
-        $targetFile = Application::getDirectory()->get(Constant::DIR_VIEW)."base.twig";
-        File::write($targetFile, $content);
+        $views = [
+            'base.twig.txt' => 'base.twig',
+            'main/main.twig.txt' => 'main/main.twig'
+        ];
 
-        $resourceFile = dirname(__DIR__) . "/resource/views/main/main.twig.txt";
-        $content = File::load($resourceFile);
-        $targetFile = Application::getDirectory()->get(Constant::DIR_VIEW)."main/main.twig";
-        File::write($targetFile, $content);
+        foreach ($views as $template => $target) {
+            $templatePath = dirname(__DIR__) . "/resource/views/" . $template;
+            $targetPath = $this->directory->get(Constant::DIR_VIEW) . $target;
+            File::write($targetPath, File::load($templatePath));
+        }
     }
 
     protected function createSampleIndex()
     {
-        $resourceFile = dirname(__DIR__) . "/resource/html/index.php.txt";
-        $content = File::load($resourceFile);
-        $content = str_replace('<<namespace>>',ucfirst(Application::getNamespace()),$content);
-        $targetFile = Application::getDirectory()->get(Constant::DIR_HOME)."index.php";
-        File::write($targetFile, $content);
+        $namespace = ucfirst($this->config->common('namespace'));
+        $template = dirname(__DIR__) . "/resource/html/index.php.txt";
+        $target = $this->directory->get(Constant::DIR_HOME) . "index.php";
+        $content = str_replace('<<namespace>>', $namespace, File::load($template));
+        File::write($target, $content);
     }
 
     public static function success()
@@ -134,9 +148,8 @@ class Installer
         echo "OK.\n";
     }
 
-    public static function fail( $errMessage = '' )
+    public static function fail($errMessage = '')
     {
-        echo $errMessage."\n";
-        echo "FAIL.\n";
+        echo $errMessage . "\nFAIL.\n";
     }
 }

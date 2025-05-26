@@ -16,7 +16,7 @@ class Application extends Singleton
     protected $autoloader;
     protected $config;
     protected $directory;
-    protected $ns;
+    protected $router;
 
     /**
      * 설정 로딩
@@ -26,31 +26,51 @@ class Application extends Singleton
      */
     protected function init(string $rootDir)
     {
-        $autoLoader = ClassLoader::getRegisteredLoaders();
-        $this->autoloader = $autoLoader;
-        $this->directory = new Directory();
-        $this->config = new Config();
+        $this->boot($rootDir);
+    }
+
+    protected function boot(string $rootDir, ?Directory $dir = null, ?Config $cfg = null): void
+    {
+        $this->autoloader = ClassLoader::getRegisteredLoaders();
+
+        $this->directory = $dir ?? new Directory();
+        $this->config = $cfg ?? new Config();
 
         $this->directory->setRoot($rootDir);
+        $this->config->init();
+        $this->applyDirectoryConfig();
 
         if ($this->config->common('installed')) {
-            $this->config->init();
+            $routeConfigList = $this->config->loadConfig($this->config->common(Constant::KEY_ROUTE));
+            foreach($routeConfigList["routing"] as $uri => $routeAction) {
+                Router::get($uri, $routeAction);
+            }
+            $siteNamespace = $this->config->common(Constant::KEY_NAMESPACE);
+            Router::setNameSpace($siteNamespace);
+
             $this->autoload();
             $this->setTemplate(new TwigTemplate());
             Security::ruleStart();
-        } else {
-            $this->config->init(false);
         }
     }
 
-    protected function setNamespace($namespace)
+    protected function applyDirectoryConfig(): void
     {
-        $this->ns = $namespace;
+        $cfg = $this->config;
+
+        $this->directory->set(Constant::DIR_CONFIG, $cfg->common('dirs.config'));
+        $this->directory->set(Constant::DIR_CONTROLLER, $cfg->common('dirs.controller'));
+        $this->directory->set(Constant::DIR_MODEL, $cfg->common('dirs.model'));
+        $this->directory->set(Constant::DIR_VIEW, $cfg->common('dirs.view'));
+        $this->directory->set(Constant::DIR_TEMP, $cfg->common('dirs.temp'));
+        $this->directory->set(Constant::DIR_LOG, $cfg->common('dirs.log'));
+        $this->directory->set(Constant::DIR_HOME, $cfg->common('dirs.home'));
+        $this->directory->set(Constant::DIR_COMPILE, $cfg->common('dirs.compile'));
     }
 
     protected function getNamespace()
     {
-        return $this->ns;
+        return $this->getConfig()->common(Constant::KEY_NAMESPACE);
     }
 
     /**
@@ -100,8 +120,6 @@ class Application extends Singleton
     protected function autoload()
     {
         $siteNamespace = $this->getConfig()->common(Constant::KEY_NAMESPACE);
-//        $this->autoloader->setPsr4($siteNamespace . "\\", array($this->getDir(Constant::DIR_CONTROLLER)));
-//        $this->autoloader->setPsr4($siteNamespace . "\\Model\\", array($this->getDir(Constant::DIR_MODEL)));
 
         $namespaces = [
             $siteNamespace. "\\Controller\\" => $this->getDir(Constant::DIR_CONTROLLER),
@@ -147,23 +165,24 @@ class Application extends Singleton
 
     protected function start()
     {
-        $currentUri = Uri::get();
-        Router::execute($currentUri);
+        $uri = Uri::get();
+        $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+
+        return Router::dispatch($uri, $method);
     }
 
     /**
      * @param $rootDir
      * @param string $namespace
-     * @throws Exception
+     * @deprecated
      */
     protected function install($rootDir, string $namespace = Constant::NS_DEFAULT)
     {
-        $this->directory = new Directory();
-        $this->config = new Config();
-        $this->directory->setRoot($rootDir);
+        $Installer = new Installer();
+        $Installer->setup($rootDir, $namespace);
 
-        if(empty($namespace)) $namespace = Constant::NS_DEFAULT;
-        $installer = new Installer();
-        $installer->install($namespace);
+        $this->boot($rootDir);
+
+        $Installer->install();
     }
 }

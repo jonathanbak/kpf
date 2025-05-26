@@ -1,11 +1,11 @@
 <?php declare(strict_types=1);
 
-namespace Kpf\Tests;
+namespace KpfTest\Framework;
 
 use Kpf\Model;
 use PHPUnit\Framework\TestCase;
 
-final class ModelTest extends TestCase
+final class ModelBaseTest extends TestCase
 {
     protected static $MySQL = null;
 
@@ -26,6 +26,7 @@ final class ModelTest extends TestCase
     public function testConstructor(Model $MySQL)
     {
 //        $this->markTestSkipped( 'PHPUnit will skip this method' );
+        $MySQL->query("DROP TABLE IF EXISTS tmp_table");
 
         $query = "CREATE TABLE `tmp_table` (
           `t_id` int(11) NOT NULL DEFAULT '0',
@@ -61,7 +62,7 @@ final class ModelTest extends TestCase
         $query = "SELECT * FROM `tmp_table` WHERE t_id > ? LIMIT 2";
         $list = array();
         while($row = $MySQL->fetch($query, array(4))){
-//            var_dump($row);
+            var_dump($row);
             $list[] = $row;
         }
 
@@ -75,13 +76,15 @@ final class ModelTest extends TestCase
      */
     public function testFetchWhile2(Model $MySQL)
     {
+//        $this->markTestSkipped( 'PHPUnit will skip this method' );
         $query = "SELECT * FROM `tmp_table` WHERE t_id > ? LIMIT 2";
         $list = array();
+        $MySQL->bind_param('i');
         while($row = $MySQL->fetch($query, array(5))){
-//            var_dump($row);
             $list_1 = $row; $list_2 = array();
-            while($row = $MySQL->fetch($query, array(1))){
-//            var_dump($row);
+            $query2 = "SELECT * FROM `tmp_table` WHERE t_id = ?";
+            $MySQL->bind_param('i');
+            while($row = $MySQL->fetch($query2, array($row['t_id']))){
                 $list_2[] = $row;
             }
             $list[] = array($list_1, $list_2);
@@ -108,14 +111,14 @@ final class ModelTest extends TestCase
     }
 
     /**
+     * Drop the test table.
+     *
      * @depends testFetchForeach
      */
     public function testDropTable(Model $MySQL)
     {
-        $query = "DROP TABLE `tmp_table`; ";
-        $result = $MySQL->query($query);
-
-        $this->assertEquals(true, $result);
+        $result = $MySQL->query("DROP TABLE IF EXISTS tmp_table");
+        $this->assertTrue($result);
 
         return $MySQL;
     }

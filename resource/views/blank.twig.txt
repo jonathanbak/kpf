@@ -1,0 +1,6 @@
+{% extends "base.twig" %}
+
+{% block content %}
+<h1>Hello, {{ name }} this is the view for {{ id }}</h1>
+<div>{{ memo }}</div>
+{% endblock %}

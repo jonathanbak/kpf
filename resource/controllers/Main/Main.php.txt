@@ -9,7 +9,8 @@ class Main extends Controller
     public function main()
     {
         $Member = new Member();
-        $data = $Member->getInfo();
+        $data = $Member->find();
+
         $this->display("main/main", $data);
     }
 }

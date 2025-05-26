@@ -39,4 +39,11 @@ class File
         }
         file_put_contents($file, $content, LOCK_EX);
     }
+
+    public static function makeDir(string $dir, $chmod = 0755): bool
+    {
+        if (!is_dir($dir)) return mkdir($dir, $chmod, true);
+        return true;
+    }
+
 }

@@ -1,0 +1,9 @@
+<?php
+namespace <<classNamespace>>;
+
+use Kpf\Model;
+
+class <<name>> extends Model
+{
+    // Model logic here
+}

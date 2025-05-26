@@ -7,148 +7,51 @@ use Kpf\Exception\DirectoryException;
 class Directory
 {
     const DIRECTORY_SEPARATOR = '/';
-
     protected $rootDir = Constant::NONE;
-    protected $configDir;
-    protected $controllerDir;
-    protected $modelDir;
-    protected $viewDir;
-    protected $tempDir;
-    protected $logDir;
-    protected $homeDir;
-    protected $compileDir;
+    protected $dirMap = [];
 
-    /**
-     * @param $dir
-     * @return string
-     * @throws DirectoryException
-     */
-    public function get($dir): string
+    protected $defaultDirs = [
+        // 기본 디렉토리 명칭은 Constant 내 문자열을 그대로 사용
+        Constant::DIR_CONFIG     => Constant::DIR_CONFIG,
+        Constant::DIR_CONTROLLER => Constant::DIR_CONTROLLER,
+        Constant::DIR_MODEL      => Constant::DIR_MODEL,
+        Constant::DIR_VIEW       => Constant::DIR_VIEW,
+        Constant::DIR_TEMP       => Constant::DIR_TEMP,
+        Constant::DIR_LOG        => Constant::DIR_LOG,
+        Constant::DIR_HOME       => Constant::DIR_HOME,
+        Constant::DIR_COMPILE    => Constant::DIR_TEMP . Directory::DIRECTORY_SEPARATOR . Constant::DIR_COMPILE,
+    ];
+
+    public function setRoot(string $rootDir): void
     {
-        $dirPath = [];
-        $dirPath[] = $this->root();
-        switch ($dir) {
-            case Constant::DIR_CONFIG:
-                $dirPath[] = $this->getConfig();
-                break;
-            case Constant::DIR_CONTROLLER:
-                $dirPath[] = $this->getController();
-                break;
-            case Constant::DIR_MODEL:
-                $dirPath[] = $this->getModel();
-                break;
-            case Constant::DIR_VIEW:
-                $dirPath[] = $this->getView();
-                break;
-            case Constant::DIR_TEMP:
-                $dirPath[] = $this->getTemp();
-                break;
-            case Constant::DIR_LOG:
-                $dirPath[] = $this->getLog();
-                break;
-            case Constant::DIR_HOME:
-                $dirPath[] = $this->getHome();
-                break;
-            case Constant::DIR_COMPILE:
-                $dirPath[] = $this->getCompile();
-                break;
-        }
-
-        return implode(Directory::DIRECTORY_SEPARATOR, $dirPath) . Directory::DIRECTORY_SEPARATOR;
+        $this->rootDir = rtrim($rootDir, '/');
     }
 
-    /**
-     * @return string
-     * @throws DirectoryException
-     */
     public function root(): string
     {
-        if ($this->rootDir == Constant::NONE) throw new DirectoryException(Error::REQUIRE_ROOT_DIR);
+        if ($this->rootDir === Constant::NONE) {
+            throw new DirectoryException(Error::REQUIRE_ROOT_DIR);
+        }
         return $this->rootDir;
     }
 
-    public function setRoot($rootDir)
+    public function set(string $key, string $path): void
     {
-        $this->rootDir = $rootDir;
+        $this->dirMap[$key] = trim($path, Directory::DIRECTORY_SEPARATOR);
     }
 
-    public function setHome($homeDir)
+    public function get(string $key): string
     {
-        $this->homeDir = $homeDir;
+        $base = $this->dirMap[$key] ?? ($this->defaultDirs[$key] ?? '');
+        return $this->root() . Directory::DIRECTORY_SEPARATOR . $base . Directory::DIRECTORY_SEPARATOR;
     }
 
-    public function setController($controllerDir)
+    public function getAll(): array
     {
-        $this->controllerDir = $controllerDir;
-    }
-
-    public function setModel($modelDir)
-    {
-        $this->modelDir = $modelDir;
-    }
-
-    public function setView($viewDir)
-    {
-        $this->viewDir = $viewDir;
-    }
-
-    public function setTemp($tempDir)
-    {
-        $this->tempDir = $tempDir;
-    }
-
-    public function setLog($logDir)
-    {
-        $this->logDir = $logDir;
-    }
-
-    public function setConfig($configDir)
-    {
-        $this->configDir = $configDir;
-    }
-
-    public function setCompile($compileDir)
-    {
-        $this->compileDir = $compileDir;
-    }
-
-    public function getConfig(): string
-    {
-        return $this->configDir ? $this->configDir : Constant::DIR_CONFIG;
-    }
-
-    public function getController(): string
-    {
-        return $this->controllerDir ? $this->controllerDir : Constant::DIR_CONTROLLER;
-    }
-
-    public function getModel(): string
-    {
-        return $this->modelDir ? $this->modelDir : Constant::DIR_MODEL;
-    }
-
-    public function getView(): string
-    {
-        return $this->viewDir ? $this->viewDir : Constant::DIR_VIEW;
-    }
-
-    public function getTemp(): string
-    {
-        return $this->tempDir ? $this->tempDir : Constant::DIR_TEMP;
-    }
-
-    public function getLog(): string
-    {
-        return $this->logDir ? $this->logDir : Constant::DIR_LOG;
-    }
-
-    public function getCompile(): string
-    {
-        return $this->compileDir ? $this->compileDir : Constant::DIR_COMPILE;
-    }
-
-    public function getHome(): string
-    {
-        return $this->homeDir ? $this->homeDir : Constant::DIR_HOME;
+        $result = [];
+        foreach (array_keys($this->defaultDirs) as $key) {
+            $result[$key] = $this->get($key);
+        }
+        return $result;
     }
 }

@@ -18,8 +18,9 @@ class Security
         if (empty($firewallFlag)) $firewallFlag = 0;
         if ($firewallFlag == 1 || strtolower($firewallFlag) == 'on') {
             $allowIPs = Application::getConfig()->common(Constant::KEY_ALLOW_IP);
-            if (!in_array($_SERVER['REMOTE_ADDR'], $allowIPs)) {
-                throw new SecurityException("Access Denied - " . $_SERVER['REMOTE_ADDR']);
+            $remoteIp = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
+            if (!in_array($remoteIp, $allowIPs)) {
+                throw new SecurityException("Access Denied - " . $remoteIp);
             }
         }
     }

@@ -1,0 +1,20 @@
+name: Release & Notify Packagist
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  notify-packagist:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Notify Packagist
+        run: |
+          curl -X POST https://packagist.org/api/update-package \
+            -H 'Content-Type: application/json' \
+            -d '{
+              "username": "${{ secrets.PACKAGIST_USERNAME }}",
+              "apiToken": "${{ secrets.PACKAGIST_TOKEN }}"
+            }'

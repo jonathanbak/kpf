@@ -15,7 +15,10 @@ abstract class Controller
     {
         if (!$tpl) {
             $callerClass = get_class($this);
-            $callerClass = str_replace('\\', Directory::DIRECTORY_SEPARATOR, strtolower(str_replace(Application::getConfig()->comon(Constant::KEY_NAMESPACE) . '\\', '', $callerClass)));
+//            $callerClass = str_replace('\\', Directory::DIRECTORY_SEPARATOR, strtolower(str_replace(Application::getConfig()->common(Constant::KEY_NAMESPACE) . '\\', '', $callerClass)));
+            $namespace = Application::getConfig()->common(Constant::KEY_NAMESPACE);
+            $callerClass = str_replace($namespace . '\\', '', $callerClass);
+            $callerClass = str_replace('\\', Directory::DIRECTORY_SEPARATOR, strtolower($callerClass));
             $debugBackTrace = debug_backtrace();
             $callerFunc = $debugBackTrace? $debugBackTrace[1]['function'] : __FUNCTION__;
             $tplFile = $callerClass . Directory::DIRECTORY_SEPARATOR . strtolower($callerFunc);

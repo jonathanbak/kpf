@@ -1,0 +1,14 @@
+<?php
+namespace <<classNamespace>>;
+
+use Kpf\Controller;
+
+class <<name>> extends Controller
+{
+    public function main()
+    {
+        $data = ['name' => 'Jonathan Bak','id'=>'awesome','memo'=>'psf framework'];
+
+        $this->display("<<view_path>>", $data);
+    }
+}

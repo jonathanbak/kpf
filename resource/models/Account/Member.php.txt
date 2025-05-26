@@ -9,7 +9,7 @@ class Member extends Model
     /**
      * @return string[]
      */
-    public function getInfo()
+    public function find()
     {
         return ['name'=>'Jonathan Bak 2', 'id'=>'jonathanbak@gmail.com','memo'=>'test member'];
     }

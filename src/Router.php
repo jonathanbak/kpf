@@ -8,22 +8,18 @@ use Kpf\Helper\Uri;
 class Router extends Singleton
 {
     protected $routes = [];
-    private $config = null;
-    private $defaultUri = "";
+    protected $defaultUri = "/";
 
-    public function __construct()
+    protected $namespace = "";
+
+    protected function setNamespace(string $namespace): void
     {
-        $routeConfigName = Application::getConfig()->common(Constant::KEY_ROUTE);
-        $this->config = Application::getConfig()->load($routeConfigName);
-        $this->defaultUri = $this->config['default'];
-        if(!empty($this->config['routing'])){
-            foreach($this->config['routing'] as $uri => $routing){
-                $this->any($uri, $routing);
-                if($uri == $this->defaultUri) {
-                    $this->defaultUri = $routing;
-                }
-            }
-        }
+        $this->namespace = trim($namespace, '\\');
+    }
+
+    protected function setDefaultUri(string $uri): void
+    {
+        $this->defaultUri = $uri;
     }
 
     /**
@@ -33,7 +29,7 @@ class Router extends Singleton
      */
     protected function get($uri, $action)
     {
-        return $this->addRoute('GET', $uri, $action);
+        $this->addRoute('GET', $uri, $action);
     }
 
     /**
@@ -43,122 +39,118 @@ class Router extends Singleton
      */
     protected function post($uri, $action)
     {
-        return $this->addRoute('POST', $uri, $action);
+        $this->addRoute('POST', $uri, $action);
     }
 
     /**
-     * 라우팅 정보 추가
-     * @param $method
-     * @param $uri
+     * @param $methods
+     * @param string $uri
      * @param $action
+     * @return void
      */
-    protected function addRoute($method, $uri, $action)
+    protected function addRoute($methods, string $uri, $action): void
     {
-        $this->routes[] = array($method, $uri, $action);
+        $methods = is_array($methods) ? $methods : [$methods];
+        $this->routes[] = [$methods, $uri, $action];
     }
 
     /**
      * GET,POST 모든 방식 라우팅 정보 입력
      * @param $uri
      * @param $action
+     * @deprecated
      */
     protected function any($uri, $action)
     {
-        $verbs = array('GET', 'POST');
-        return $this->addRoute($verbs, $uri, $action);
+        $verbs = ['GET', 'POST'];
+        $this->addRoute($verbs, $uri, $action);
     }
 
     /**
      * 라우팅 실행 - URI 와 클래스를 매칭하여 실행한다
      * @param $currentUri
      * @return false|mixed
-     * @throws Exception\ConfigException
-     * @throws Exception\DirectoryException
-     * @throws Exception\Exception
-     * @throws RouterException
+     * @deprecated
      */
     protected function execute($currentUri)
     {
-        $customParams = array();
+        $uri = $currentUri ?? Uri::get();
+        $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 
-        if (count($this->routes) === 0) {
+        return $this->dispatch($uri, $method);
+    }
 
-        } else {
-            $arrUri = $currentUri? $currentUri : Uri::get();
-            foreach ($this->routes as $key => $route) {
-                list($method, $uri, $action) = $route;
-                if (!is_array($method)) $method = array($method);
-                if (preg_match('/^\//i', $uri, $tmpMatch)) {
-                    $uri = substr($uri, 1);
-                }
-                if (preg_match('/^' . str_replace('/', '\/', $uri) . '$/i', implode('/', $arrUri), $tmpMatch) && in_array(strtoupper($_SERVER['REQUEST_METHOD']), $method)) {
-                    if (is_object($action)) {
-                        $currentUri = $action;
-                        array_shift($tmpMatch);
-                        $customParams = $tmpMatch;
-                    } else {
-                        $currentUri = Uri::get($action);
-                    }
-                }else {
-
-                }
+    private function resolve(array $currentUri, string $method): ?array
+    {
+        foreach ($this->routes as [$methods, $uri, $action]) {
+            $pattern = '/^' . str_replace('/', '\/', ltrim($uri, '/')) . '$/i';
+            if (preg_match($pattern, implode('/', $currentUri), $matches) && in_array(strtoupper($method), $methods)) {
+                array_shift($matches);
+                return [$action, $matches];
             }
         }
-        if (is_object($currentUri)) {
-            return call_user_func_array($currentUri, $customParams);
-        } else {
-            if (count($currentUri) == 1 && empty($currentUri[0])) {
-                $currentUri = Uri::get($this->defaultUri);
-            }
-            return $this->callClassByUri($currentUri);
-        }
+        return null;
     }
 
     /**
-     * URI 와 Class 매칭
-     * @param $currentUri
-     * @return false|mixed
-     * @throws Exception\ConfigException
-     * @throws Exception\DirectoryException
-     * @throws Exception\Exception
      * @throws RouterException
      */
-    protected function callClassByUri($currentUri)
+    protected function dispatch(array $currentUri, string $method)
     {
-        $siteNamespace = Application::getConfig()->common(Constant::KEY_NAMESPACE);
-        $loadClassName = $siteNamespace . '\\Controller\\' . implode('\\', $this->ucFirstArray($currentUri));
-        if (class_exists($loadClassName)) {
-            $callClass = new $loadClassName();
-            $methodList = get_class_methods($callClass);
-            $START_METHOD = 'main';
-            if (!in_array($START_METHOD, $methodList)) {
-                throw new RouterException("Not Found File - " . $loadClassName, 404);
+        $result = $this->resolve($currentUri, $method);
+
+        if ($result !== null) {
+            [$action, $params] = $result;
+            if (is_callable($action)) {
+                return call_user_func_array($action, $params);
             }
-            return call_user_func_array(array($callClass, $START_METHOD), array());
-        } else {
-            $method = array_pop($currentUri);
-            $loadClassName = $siteNamespace . '\\Controller\\' . implode('\\', $this->ucFirstArray($currentUri));
-            if (!class_exists($loadClassName)) {
-                throw new RouterException("Not Found Class File - " . $loadClassName, 404);
-            }
-            $callClass = new $loadClassName();
-            $methodList = get_class_methods($callClass);
-            if (!in_array($method, $methodList)) throw new RouterException("Not Found File - " . $loadClassName, 404);
-            return call_user_func_array(array($callClass, $method), array());
+            $currentUri = Uri::get($action);
         }
+
+        if (count($currentUri) === 1 && empty($currentUri[0])) {
+            $currentUri = Uri::get($this->defaultUri);
+        }
+
+        return $this->callClassByUri($currentUri);
     }
 
     /**
-     * 배열 값을 각각 ucfirst 하여 돌려줌
-     * @param $values
-     * @return array
+     * @param array $currentUri
+     * @return mixed
+     * @throws RouterException
      */
-    protected function ucFirstArray($values): array
+    private function callClassByUri(array $currentUri)
     {
-        $response = array();
-        foreach ($values as $val) {
-            $response[] = ucfirst($val);
+        $namespace = $this->namespace;
+        $classParts = $this->ucFirstArray($currentUri);
+        $class = $namespace . '\\Controller\\' . implode('\\', $classParts);
+
+        if (class_exists($class)) {
+            $instance = new $class();
+            if (!method_exists($instance, 'main')) {
+                throw new RouterException("Method 'main' not found in $class", 404);
+            }
+            return $instance->main();
         }
-        return $response;
+
+        $method = array_pop($currentUri);
+        $classParts = $this->ucFirstArray($currentUri);
+        $class = $namespace . '\\Controller\\' . implode('\\', $classParts);
+
+        if (!class_exists($class)) {
+            throw new RouterException("Class not found: $class", 404);
+        }
+
+        $instance = new $class();
+        if (!method_exists($instance, $method)) {
+            throw new RouterException("Method '$method' not found in $class", 404);
+        }
+
+        return call_user_func([$instance, $method]);
+    }
+
+    private function ucFirstArray(array $segments): array
+    {
+        return array_map('ucfirst', $segments);
     }
 }

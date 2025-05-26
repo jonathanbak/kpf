@@ -31,7 +31,7 @@ class Model extends MySQLDb
      */
     public function select(string $configName = Constant::COMMON_DB)
     {
-        $options = Application::getConfig()->load($configName);
+        $options = Application::getConfig()->loadConfig($configName);
         if(!empty($options) && !empty($options['host'])){
             $host = $options['host'];
             $user = $options['user'];

@@ -1,0 +1,92 @@
+name: Run PHPUnit with Coverage & MySQL
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+env:
+  DB_HOST: 127.0.0.1
+  DB_NAME: db_test
+  DB_USER: test
+  DB_PASSWD: test1234
+  DB_PORT: 3306
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        include:
+          - php-version: 7.1
+            phpunit-version: 7.5
+          - php-version: 7.4
+            phpunit-version: 9.5
+          - php-version: 8.0
+            phpunit-version: 9.5
+          - php-version: 8.1
+            phpunit-version: 9.5
+          - php-version: 8.3
+            phpunit-version: 9.5
+
+    services:
+      mysql:
+        image: mysql:5.7
+        env:
+          MYSQL_DATABASE: ${{ env.DB_NAME }}
+          MYSQL_USER: ${{ env.DB_USER }}
+          MYSQL_PASSWORD: ${{ env.DB_PASSWD }}
+          MYSQL_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up PHP ${{ matrix.php-version }}
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          extensions: mysqli
+          coverage: xdebug
+
+      - name: Wait for MySQL to be ready
+        run: |
+          sudo apt-get install -y mysql-client
+          until mysql -h 127.0.0.1 -u test -ptest1234 -e "SHOW DATABASES;"; do
+            echo "Waiting for MySQL..."
+            sleep 5
+          done
+
+      - name: Set timezone
+        run: sudo timedatectl set-timezone Asia/Seoul
+
+      - name: Install dependencies
+        run: |
+          composer require --dev phpunit/phpunit:${{ matrix.phpunit-version }} --no-update
+          composer update --prefer-dist --no-interaction
+
+      - name: Run PHPUnit with coverage
+        env:
+          DB_HOST: ${{ env.DB_HOST }}
+          DB_USER: ${{ env.DB_USER }}
+          DB_PASSWD: ${{ env.DB_PASSWD }}
+          DB_NAME: ${{ env.DB_NAME }}
+          DB_PORT: ${{ env.DB_PORT }}
+        run: vendor/bin/phpunit --testsuite all --coverage-text --coverage-clover=coverage.xml
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: coverage.xml
+          flags: php-${{ matrix.php-version }}
+          name: phpunit-coverage

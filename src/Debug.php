@@ -63,7 +63,8 @@ class Debug extends Singleton
 
     protected function _log($messages, $logGroup = 'common')
     {
-        $messages = "[" . date("Y-m-d H:i:s") . "] (" . $logGroup . ") " . $_SERVER['REMOTE_ADDR'] . " - " . $messages . "\n";
+        $remoteAddr = $_SERVER['REMOTE_ADDR']?? '127.0.0.1';
+        $messages = "[" . date("Y-m-d H:i:s") . "] (" . $logGroup . ") " . $remoteAddr . " - " . $messages . "\n";
         file_put_contents($this->logFileName, $messages, FILE_APPEND);
     }
 }

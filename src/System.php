@@ -10,8 +10,13 @@ abstract class System
 
     public function __construct()
     {
-        if(php_sapi_name() != "cli"){
+        if (!$this->isCli()) {
             throw new Exception("Access Denied.");
         }
+    }
+
+    protected function isCli(): bool
+    {
+        return php_sapi_name() === "cli";
     }
 }

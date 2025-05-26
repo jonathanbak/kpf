@@ -54,10 +54,10 @@ class Error
                 $msg = 'Root Directory 를 설정해주세요';
                 break;
             case self::NOT_FOUND_CONFIG:
-                $msg = '설정 파일을 찾을수 없습니다';
+                $msg = '설정 파일을 찾을 수 없습니다';
                 break;
             case self::INVALID_COMMAND:
-                $msg = "http:://domain/path 형태로 실행할 경로를 입력하세요";
+                $msg = "http://domain/path 형태로 실행할 경로를 입력하세요";
                 break;
             case self::REQUIRE_AUTOLOADER:
                 $msg = "composer autoloader 를 입력해주세요";

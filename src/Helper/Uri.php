@@ -14,16 +14,18 @@ class Uri
      */
     public static function get(string $forwardUri = Constant::NONE): array
     {
-        $uri = $forwardUri? $forwardUri : (!empty($_SERVER['REQUEST_URI'])? $_SERVER['REQUEST_URI'] : '');
-        $arrTmpUrl = explode('?',$uri);
-        if(isset($arrTmpUrl[1])) {
-            $params = array();
+        $uri = $forwardUri ?: ($_SERVER['REQUEST_URI'] ?? '');
+        $arrTmpUrl = explode('?', $uri);
+
+        if (isset($arrTmpUrl[1])) {
+            $params = [];
             parse_str($arrTmpUrl[1], $params);
             $_GET = array_merge($_GET, $params);
         }
-        $url = $arrTmpUrl[0];
-        $arrUri = explode('/', $url );
-        if(preg_match("/^\//i",$uri,$tmpMatch)) array_shift($arrUri);
+
+        $url = ltrim($arrTmpUrl[0], '/');
+        $arrUri = explode('/', $url);
+
         return $arrUri;
     }
 
