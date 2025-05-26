@@ -8,13 +8,16 @@ on:
 jobs:
   notify-packagist:
     runs-on: ubuntu-latest
+    env:
+      PACKAGIST_USERNAME: ${{ secrets.PACKAGIST_USERNAME }}
+      PACKAGIST_TOKEN: ${{ secrets.PACKAGIST_TOKEN }}
 
     steps:
       - name: Notify Packagist
         run: |
           curl -X POST https://packagist.org/api/update-package \
             -H 'Content-Type: application/json' \
-            -d '{
-              "username": "${{ secrets.PACKAGIST_USERNAME }}",
-              "apiToken": "${{ secrets.PACKAGIST_TOKEN }}"
-            }'
+            -d "{
+              \"username\": \"${PACKAGIST_USERNAME}\",
+              \"apiToken\": \"${PACKAGIST_TOKEN}\"
+            }"

@@ -1,7 +1,7 @@
 # KPF - Kubernetes Friendly PHP Framework
 
-[![Build Status](https://github.com/jonathanbak/mysqlilib/actions/workflows/test.yml/badge.svg)](https://github.com/jonathanbak/kpf/actions/workflows/test.yml)
-[![codecov](https://codecov.io/gh/jonathanbak/mysqlilib/branch/master/graph/badge.svg)](https://codecov.io/gh/jonathanbak/kpf)
+[![Build Status](https://github.com/jonathanbak/kpf/actions/workflows/test.yml/badge.svg)](https://github.com/jonathanbak/kpf/actions/workflows/test.yml)
+[![codecov](https://codecov.io/gh/jonathanbak/kpf/branch/master/graph/badge.svg)](https://codecov.io/gh/jonathanbak/kpf)
 ![PHP Version](https://img.shields.io/badge/php-7.2%20~%208.3-blue)
 
 **KPF (Kubernetes Friendly PHP Framework)**는 PHP 환경에서 MVC 아키텍처 기반 웹 애플리케이션을 간편하게 구축할 수 있도록 설계된 **경량 독립형 마이크로 프레임워크**입니다.
