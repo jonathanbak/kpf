@@ -1,7 +1,7 @@
 {
   "name": "jonathanbak/kpf",
   "description": "kubernetes php framework",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "type": "project",
   "license": "MIT",
   "authors": [
