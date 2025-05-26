@@ -1,5 +1,9 @@
 # KPF - Kubernetes Friendly PHP Framework
 
+[![Build Status](https://github.com/jonathanbak/mysqlilib/actions/workflows/test.yml/badge.svg)](https://github.com/jonathanbak/kpf/actions/workflows/test.yml)
+[![codecov](https://codecov.io/gh/jonathanbak/mysqlilib/branch/master/graph/badge.svg)](https://codecov.io/gh/jonathanbak/kpf)
+![PHP Version](https://img.shields.io/badge/php-7.2%20~%208.3-blue)
+
 **KPF (Kubernetes Friendly PHP Framework)**는 PHP 환경에서 MVC 아키텍처 기반 웹 애플리케이션을 간편하게 구축할 수 있도록 설계된 **경량 독립형 마이크로 프레임워크**입니다.
 
 웹서버 설정에 종속되지 않고, 프레임워크 레벨에서 경로와 네임스페이스를 동적으로 바인딩할 수 있어 **Kubernetes와 같은 컨테이너 환경뿐 아니라, 로컬 개발, 서버 호스팅 등 다양한 배포 환경에서 유연하게 작동**합니다.
@@ -14,15 +18,15 @@ Kubernetes 환경에 친화적이되, 특정 인프라에 얽매이지 않는 **
 - **프레임워크 디렉토리 유연성**: `configure.json` 설정만으로 디렉토리 구조와 네임스페이스를 자유롭게 정의
 - **의존성 최소화, 독립형 구조**: 특정 웹서버, 플랫폼, 호스팅에 종속되지 않음
 - **Twig 3 지원**: 깔끔하고 강력한 템플릿 시스템 제공
-- *PHP 7.1 이상 호환**: 최신 기능은 활용하면서도 안정적인 버전 호환성 유지
+- *PHP 7.2 이상 호환**: 최신 기능은 활용하면서도 안정적인 버전 호환성 유지
 
 ---
 
 ## ✅ Requirements
 
-- PHP >= 7.1
+- PHP >= 7.2.5
 - Composer
-- twig 3.x (`~3.8` 권장)
+- twig 3.11.x (`~3.11` 권장)
 - `jonathanbak/mysqlilib:^1.3`
 
 ---
