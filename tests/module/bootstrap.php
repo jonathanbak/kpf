@@ -8,7 +8,7 @@ require_once APP_ROOT . '/vendor/autoload.php';
 
 $exampleRoot = APP_ROOT . '/'.$GLOBALS['EXAMPLE_ROOT'];
 if (!is_dir($exampleRoot)) {
-    throw new \RuntimeException("Example root directory not found: " . $exampleRoot);
+    mkdir($exampleRoot, 0777, true);
 }
 
 // ✅ 공통설정파일 경로
