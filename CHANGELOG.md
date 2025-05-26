@@ -2,6 +2,13 @@
 
 모든 마이너 릴리즈는 프레임워크 핵심의 안정성과 기능 개선을 목표로 합니다.
 
+## [1.2.2](https://github.com/jonathanbak/kpf/compare/v1.2.1...v1.2.2) (2025-05-26)
+
+
+### Miscellaneous Chores
+
+* update CI badge and release-packagist configuration ([2db1fbb](https://github.com/jonathanbak/kpf/commit/2db1fbb81f1c4c651c21b8a6154b8670f0eca3e7))
+
 ## [1.2.1](https://github.com/jonathanbak/kpf/compare/v1.2.0...v1.2.1) (2025-05-26)
 
 
