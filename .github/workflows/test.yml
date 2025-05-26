@@ -2,9 +2,9 @@ name: Run PHPUnit with Coverage & MySQL
 
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
   pull_request:
-    branches: [ master ]
+    branches: [ main ]
 
 env:
   DB_HOST: 127.0.0.1
